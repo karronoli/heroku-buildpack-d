@@ -10,10 +10,11 @@ ARCHIVE_DIR=$CACHE_DIR/archives
 LIB_DIR=$CACHE_DIR/libs
 mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR" "$LIB_DIR"
 
-DMD_ARCHIVE_PATH=http://downloads.dlang.org/releases/2015
-DMD_ARCHIVE=dmd.2.067.1.linux
+DMD_VERSION=2.070.2
+DMD_ARCHIVE_PATH="http://downloads.dlang.org/releases/2.x/$DMD_VERSION"
+DMD_ARCHIVE="dmd.$DMD_VERSION.linux"
 DMD_DIR=dmd2
-DUB_ARCHIVE=v0.9.23
+DUB_ARCHIVE=v0.9.24
 DUB_ARCHIVE_PATH=https://github.com/D-Programming-Language/dub/archive
 DUB_DIR=dub-${DUB_ARCHIVE#v}
 
@@ -22,18 +23,17 @@ indent() {
 }
 
 # download latest archives
-if [ ! -f $ARCHIVE_DIR/$DMD_ARCHIVE.zip ]; then
+cd $ARCHIVE_DIR
+if [ ! -f "$DMD_ARCHIVE.tar.xz" ]; then
     echo
     echo "-----> Downloading DMD"
-    curl -L $DMD_ARCHIVE_PATH/$DMD_ARCHIVE.zip \
-	   -o $ARCHIVE_DIR/$DMD_ARCHIVE.zip
+    curl -OL "$DMD_ARCHIVE_PATH/$DMD_ARCHIVE.tar.xz"
 fi | indent
 
-if [ ! -f $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz ]; then
+if [ ! -f "$DUB_ARCHIVE.tar.gz" ]; then
  echo
  echo "-----> Downloading dub package manager"
- curl -L $DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz \
-	 -o $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
+ curl -OL "$DUB_ARCHIVE_PATH/$DUB_ARCHIVE.tar.gz"
 fi | indent
 
 
@@ -43,37 +43,32 @@ echo
 echo "-----> Setting PATH: $PATH"
 echo
 echo "-----> Initializing toolchain"
-cd $TOOL_DIR
-7za x $ARCHIVE_DIR/$DMD_ARCHIVE.zip > /dev/null
-tar xzf $ARCHIVE_DIR/$DUB_ARCHIVE.tar.gz
-cd $TOOL_DIR/$DUB_DIR
+cd "$ARCHIVE_DIR"
+tar xf "$DMD_ARCHIVE.tar.xz" -C "$TOOL_DIR"
+tar xf "$DUB_ARCHIVE.tar.gz" -C "$TOOL_DIR"
+cd "$TOOL_DIR/$DUB_DIR"
 ./build.sh | indent
-cd $TOOL_DIR
 DUB_BIN=`ls -lh $TOOL_DIR/$DUB_DIR/bin/dub`
 echo "-----> DUB package manager cmd found at $DUB_BIN"
 
 
 echo
 echo "-----> Building app"
-
-# link the dub cache to the cache folder
-mkdir -p $CACHE_DIR/.dub
-
-if [ ! -e $BUILD_DIR/.dub ]; then
-    ln -s $CACHE_DIR/.dub $BUILD_DIR/.dub
-fi
-
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/app/opt/lib/pkgconfig
-
+# link the dub cache to the cache folder
+mkdir -p "$CACHE_DIR/.dub"
+if [ ! -e "$BUILD_DIR/.dub" ]; then
+    ln -s "$CACHE_DIR/.dub" "$BUILD_DIR/.dub"
+fi
 # if dub.json or package.json has contents, run dub build
 status=1
-if [ ! -s $BUILD_DIR/dub.json -a ! -s $BUILD_DIR/package.json ]; then
+if [ ! -s "$BUILD_DIR/dub.json" -a ! -s "$BUILD_DIR/package.json" ]; then
   echo
   echo "!!! dub.json was empty" | indent
   status=1
 else
   # pre-build hook
-  cd $BUILD_DIR
+  cd "$BUILD_DIR"
   if [ -f dub-prebuild ]; then
     echo
     echo "Running dub-prebuild…" | indent
@@ -95,7 +90,7 @@ else
 fi
 
 # post-build hook
-cd $BUILD_DIR
+cd "$BUILD_DIR"
 if [ -f dub-postbuild ]; then
     echo
     echo "Running dub-postbuild…" | indent
@@ -106,3 +101,4 @@ fi
 rm -rf "$TOOL_DIR" source src views
 
 exit $status
+
