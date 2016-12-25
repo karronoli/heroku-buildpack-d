@@ -10,11 +10,11 @@ ARCHIVE_DIR=$CACHE_DIR/archives
 LIB_DIR=$CACHE_DIR/libs
 mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR" "$LIB_DIR"
 
-DMD_VERSION=2.070.2
+DMD_VERSION=2.072.1
 DMD_ARCHIVE_PATH="http://downloads.dlang.org/releases/2.x/$DMD_VERSION"
 DMD_ARCHIVE="dmd.$DMD_VERSION.linux"
 DMD_DIR=dmd2
-DUB_ARCHIVE=v0.9.24
+DUB_ARCHIVE=v1.1.1
 DUB_ARCHIVE_PATH=https://github.com/D-Programming-Language/dub/archive
 DUB_DIR=dub-${DUB_ARCHIVE#v}
 
