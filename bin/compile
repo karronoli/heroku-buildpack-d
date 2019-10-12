@@ -10,13 +10,14 @@ ARCHIVE_DIR=$CACHE_DIR/archives
 LIB_DIR=$CACHE_DIR/libs
 mkdir -p "$TOOL_DIR" "$ARCHIVE_DIR" "$LIB_DIR"
 
-DMD_VERSION=2.072.1
+DMD_VERSION=2.088.0
 DMD_ARCHIVE_PATH="http://downloads.dlang.org/releases/2.x/$DMD_VERSION"
 DMD_ARCHIVE="dmd.$DMD_VERSION.linux"
 DMD_DIR=dmd2
-DUB_ARCHIVE=v1.1.1
-DUB_ARCHIVE_PATH=https://github.com/D-Programming-Language/dub/archive
-DUB_DIR=dub-${DUB_ARCHIVE#v}
+DUB_VERSION=1.11.0
+DUB_ARCHIVE=dub-${DUB_VERSION}-linux-x86_64
+DUB_ARCHIVE_PATH=https://code.dlang.org/files/
+DUB_DIR=dub-${DUB_VERSION}
 
 indent() {
   sed -u 's/^/       /'
@@ -38,16 +39,18 @@ fi | indent
 
 
 # initialise toolchain
-export PATH=$TOOL_DIR/$DMD_DIR/linux/bin64:$TOOL_DIR/$DUB_DIR/bin:$BUILDPACK_DIR:$PATH
-echo
-echo "-----> Setting PATH: $PATH"
 echo
 echo "-----> Initializing toolchain"
 cd "$ARCHIVE_DIR"
+mkdir "$TOOL_DIR/$DMD_DIR"
 tar xf "$DMD_ARCHIVE.tar.xz" -C "$TOOL_DIR"
-tar xf "$DUB_ARCHIVE.tar.gz" -C "$TOOL_DIR"
+mkdir -p "$TOOL_DIR/$DUB_DIR/bin"
+tar xf "$DUB_ARCHIVE.tar.gz" -C "$TOOL_DIR/$DUB_DIR/bin"
+export PATH=$TOOL_DIR/$DMD_DIR/linux/bin64:$TOOL_DIR/$DUB_DIR/bin:$BUILDPACK_DIR:$PATH
+echo
+echo "-----> Setting PATH: $PATH"
+
 cd "$TOOL_DIR/$DUB_DIR"
-./build.sh | indent
 DUB_BIN=`ls -lh $TOOL_DIR/$DUB_DIR/bin/dub`
 echo "-----> DUB package manager cmd found at $DUB_BIN"
 
@@ -101,4 +104,3 @@ fi
 rm -rf "$TOOL_DIR" source src views
 
 exit $status
-
